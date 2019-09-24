@@ -112,6 +112,11 @@ class ServeCommand extends Command {
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
 
+      // Write options
+      var options = <String, dynamic>{};
+      options[ApplicationDirectory.autoRestartOption] =
+          req.bodyAsMap.containsKey(ApplicationDirectory.autoRestartOption);
+
       // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);

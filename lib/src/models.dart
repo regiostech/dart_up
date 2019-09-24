@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:io/ansi.dart';
@@ -43,6 +44,8 @@ class ApplicationDirectory {
 
   ApplicationDirectory(this.directory);
 
+  static final String autoRestartOption = 'auto_restart';
+
   String get name => p.basename(directory.path);
 
   File get packagesFile => File(p.join(directory.path, '.packages'));
@@ -51,6 +54,20 @@ class ApplicationDirectory {
 
   File get pubspecFile => File(p.join(directory.path, 'pubspec.yaml'));
 
+  File get optionsFile => File(p.join(directory.path, 'dart_up_options.json'));
+
+  Future<bool> get autoRestart async {
+    var options = await readOptions();
+    return options[autoRestartOption] == true;
+  }
+
+  Future<Map<String, dynamic>> readOptions() async {
+    return await optionsFile
+        .readAsString()
+        .then(json.decode)
+        .then((d) => d as Map<String, dynamic>);
+  }
+
   Future<void> delete() async {
     await directory.delete(recursive: true);
   }
@@ -58,18 +75,19 @@ class ApplicationDirectory {
   Future<Application> spawn() async {
     var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
         packageConfig: packagesFile.uri);
-    return Application(name, isolate);
+    return Application(name, await autoRestart, isolate);
   }
 }
 
 class Application {
   String name;
   Isolate isolate;
+  bool autoRestart;
   bool isDead = false;
   ReceivePort onExit = ReceivePort(), onError = ReceivePort();
   Object error;
 
-  Application(this.name, this.isolate) {
+  Application(this.name, this.autoRestart, this.isolate) {
     isolate.addOnExitListener(onExit.sendPort);
     isolate.addErrorListener(onError.sendPort);
     onExit.listen((_) => isDead = true);
