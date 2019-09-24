@@ -122,15 +122,17 @@ class ServeCommand extends Command {
       }
     }
 
-    app.get('/list', (req, res) => apps);
+    var protectedRouter = app.chain([enforceAuth]);
 
-    app.post('/kill', (req, res) async {
+    protectedRouter.get('/list', (req, res) => apps);
+
+    protectedRouter.post('/kill', (req, res) async {
       var app = await getApplicationFromBody(req);
       await app.kill();
       return app;
     });
 
-    app.post('/start', (req, res) async {
+    protectedRouter.post('/start', (req, res) async {
       var app = await getApplicationFromBody(req);
       if (!app.isDead) {
         return app;
@@ -140,7 +142,7 @@ class ServeCommand extends Command {
       }
     });
 
-    app.post('/remove', (req, res) async {
+    protectedRouter.post('/remove', (req, res) async {
       // Kill the app.
       var app = await getApplicationFromBody(req);
       await app?.kill();
@@ -152,7 +154,7 @@ class ServeCommand extends Command {
       return app;
     });
 
-    app.post('/push', (req, res) async {
+    protectedRouter.post('/push', (req, res) async {
       await req.parseBody();
       var appDill = req.uploadedFiles.firstWhere(
           (f) => f.contentType.mimeType == 'application/dill',
