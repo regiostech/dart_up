@@ -13,8 +13,8 @@ abstract class ClientCommand<T> extends Command<T> {
 
   Future<T> run() async {
     var app = Rest(argResults['url'] as String);
-    return Future.sync(() {
-      return runWithClient(app);
-    }).whenComplete(() => app.close());
+    return await runWithClient(app);
+    // return Future.sync(() => runWithClient(app))
+    //     .whenComplete(() => app.close());
   }
 }

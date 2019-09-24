@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:angel_client/angel_client.dart';
 import 'package:args/command_runner.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:io/ansi.dart';
 import 'package:path/path.dart' as p;
@@ -20,12 +21,16 @@ class PushCommand extends ClientCommand {
     if (argResults.rest.isEmpty) {
       throw UsageException('A path to a .dart file must be provided.', usage);
     } else {
-      var dillFile =
-          p.join('.dart_tool', p.setExtension(argResults.rest[0], '.dill'));
+      var dillFile = p.join(
+          '.dart_tool', 'dart_up', p.setExtension(argResults.rest[0], '.dill'));
+      await Directory(p.dirname(dillFile)).create(recursive: true);
+      var logger = Logger.standard(); // TODO: Verbose?
+      var progress = logger.progress(lightGray.wrap('Building $dillFile...'));
       var dart = await Process.start(Platform.resolvedExecutable,
           ['--snapshot=$dillFile', argResults.rest[0]],
           mode: ProcessStartMode.inheritStdio);
       var exitCode = await dart.exitCode;
+      await progress.finish(showTiming: true);
       if (exitCode != 0) {
         stderr.writeln(red.wrap('Building a snapshot failed.'));
       } else {
