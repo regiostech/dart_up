@@ -64,8 +64,10 @@ class ServeCommand extends Command {
       await appDill.data.pipe(dillFile.openWrite());
       // Use the temp dir's .packages file
       // TODO: Handle exits
-      var isolate = await Isolate.spawnUri(dillFile.uri, [], null);
-      var appModel = Application()..isolate = isolate;
+      var isolate = await Isolate.spawnUri(dillFile.uri, [], null,
+          packageConfig: packagesFile.uri);
+      var appModel = Application(isolate);
+      apps[pubspec.name] = appModel;
       return appModel;
     });
 
