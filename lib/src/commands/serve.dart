@@ -143,6 +143,11 @@ class ServeCommand extends Command {
         throw AngelHttpException.forbidden(
             message: 'Application "$lambdaName" is not a lambda.');
       } else {
+        // Spawn the app, if it's dead.
+        if (app.isDead) {
+          await app.start();
+        }
+
         // Read headers
         var headers = <String, String>{};
         req.headers.forEach((k, v) {

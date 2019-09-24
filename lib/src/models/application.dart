@@ -8,11 +8,13 @@ class Application {
   String name;
   Isolate isolate;
   bool autoRestart, isLambda;
-  bool isDead = false;
+  bool isDead = true;
   Uri dillUri, packagesUri;
   ReceivePort onExit = ReceivePort(), onError = ReceivePort(), lambdaPort;
   Object error;
   LambdaClient lambdaClient;
+  Duration lambdaKillDuration = Duration(seconds: 3);
+  Timer lambdaKillTimer;
 
   Application(this.name, this.autoRestart, this.isLambda, this.dillUri,
       this.packagesUri) {
@@ -26,6 +28,7 @@ class Application {
   }
 
   Future<void> start() async {
+    if (!isDead) return;
     SendPort message;
     if (isLambda) {
       lambdaClient?.close();
@@ -40,6 +43,12 @@ class Application {
         packageConfig: packagesUri,
         onError: onError.sendPort,
         onExit: onExit.sendPort);
+    isDead = false;
+
+    if (isLambda) {
+      lambdaKillTimer?.cancel();
+      lambdaKillTimer = Timer(lambdaKillDuration, kill);
+    }
   }
 
   Application.fromJson(Map m)
@@ -48,6 +57,8 @@ class Application {
         isDead = m['is_dead'] == true;
 
   Future<void> kill() async {
+    lambdaKillTimer?.cancel();
+    lambdaClient?.close();
     isolate.kill();
     isDead = true;
     onExit.close();

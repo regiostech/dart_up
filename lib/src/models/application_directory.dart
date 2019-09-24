@@ -47,7 +47,7 @@ class ApplicationDirectory {
   Future<Application> spawn() async {
     var app = Application(name, await autoRestart, await isLambda,
         dillFile.absolute.uri, packagesFile.uri);
-    await app.start();
+    if (!app.isLambda) await app.start();
     return app;
   }
 }
