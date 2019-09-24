@@ -13,6 +13,7 @@ dependencies:
   json_annotation: ^3.0.0
   json_rpc_2: ^2.0.0
   logging: ^0.11.0
+  path: ^1.0.0
   pretty_logging: ^1.0.0
   pubspec_parse: ^0.1.5
   stream_channel: ^2.0.0
