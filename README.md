@@ -107,6 +107,13 @@ Run "dart_up help <command>" for more information about a command.
 manage an instance of this application, restarting it if it
 ever crashes.
 
+For convenience, you can override the default `--url` option with the
+`DART_UP_URL` environment variable:
+
+```bash
+$ DART_UP_URL=http://example.com dart_up list
+```
+
 ### Password Authentication
 `dart_up` supports `bcrypt`-hashed passwords, and uses `Basic` authentication
 to ensure that external clients have access to the daemon. `dart_up` can also
