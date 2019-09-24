@@ -10,7 +10,8 @@ class ApplicationDirectory {
 
   ApplicationDirectory(this.directory);
 
-  static final String autoRestartOption = 'auto_restart';
+  static const String autoRestartOption = 'auto_restart',
+      lambdaOption = 'lambda';
 
   String get name => p.basename(directory.path);
 
@@ -27,6 +28,11 @@ class ApplicationDirectory {
     return options[autoRestartOption] == true;
   }
 
+  Future<bool> get isLambda async {
+    var options = await readOptions();
+    return options[lambdaOption] == true;
+  }
+
   Future<Map<String, dynamic>> readOptions() async {
     return await optionsFile
         .readAsString()
@@ -41,7 +47,7 @@ class ApplicationDirectory {
   Future<Application> spawn() async {
     var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
         packageConfig: packagesFile.uri);
-    return Application(name, await autoRestart, dillFile.absolute.uri,
-        packagesFile.uri, isolate);
+    return Application(name, await autoRestart, await isLambda,
+        dillFile.absolute.uri, packagesFile.uri, isolate);
   }
 }

@@ -5,14 +5,14 @@ import 'package:io/ansi.dart';
 class Application {
   String name;
   Isolate isolate;
-  bool autoRestart;
+  bool autoRestart, isLambda;
   bool isDead = false;
   Uri dillUri, packagesUri;
   ReceivePort onExit = ReceivePort(), onError = ReceivePort();
   Object error;
 
-  Application(this.name, this.autoRestart, this.dillUri, this.packagesUri,
-      this.isolate) {
+  Application(this.name, this.autoRestart, this.isLambda, this.dillUri,
+      this.packagesUri, this.isolate) {
     isolate.addOnExitListener(onExit.sendPort);
     isolate.addErrorListener(onError.sendPort);
     onExit.listen((_) async {

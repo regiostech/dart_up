@@ -23,6 +23,10 @@ class PushCommand extends ClientCommand {
     argParser
       ..addFlag('auto-restart',
           defaultsTo: true, help: 'Automatically restart the app on exit.')
+      ..addFlag('lambda',
+          abbr: 'L',
+          negatable: false,
+          help: 'Create a lambda (on-demand), instead of a daemon.')
       ..addOption('name',
           abbr: 'n',
           help:
@@ -55,6 +59,9 @@ class PushCommand extends ClientCommand {
         }
         if (argResults['auto-restart'] as bool) {
           rq.fields[ApplicationDirectory.autoRestartOption] = '1';
+        }
+        if (argResults['lambda'] as bool) {
+          rq.fields[ApplicationDirectory.lambdaOption] = '1';
         }
         rq.fields['pubspec'] = await File('pubspec.yaml').readAsString();
         rq.files.add(await http.MultipartFile.fromPath(
