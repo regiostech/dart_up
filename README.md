@@ -1,6 +1,10 @@
+# EARLY RELEASE
+Note that this is a very early-stage release, with no unit tests.
+Be careful if using it in production at this point.
+
 # dart\_up
 **For a managed/hosted solution (truly "serverless"), check out
-https://dart-up.regios.dev!**
+https://dart-up.regios.dev! (this service does not yet exist)**
 
 Web application container for Dart servers, akin to PM/2 (Node.js).
 Runs applications in isolates in the same VM, with `.packages` files

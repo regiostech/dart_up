@@ -1,6 +1,8 @@
 name: dart_up
 version: 0.0.0
 description: Dart Web application container; run multiple apps in one VM.
+environment:
+  sdk: ">=2.0.0 <3.0.0"
 dependencies:
   angel_client: ^2.0.0
   angel_framework: ^2.0.0
