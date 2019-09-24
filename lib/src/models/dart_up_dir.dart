@@ -30,6 +30,18 @@ class DartUpPasswordFile {
 
   DartUpPasswordFile(this.dbCrypt, this.file);
 
+  Future<void> savePassword(String username, String password) async {
+    var pws = await read();
+    var salt = dbCrypt.gensalt();
+    var pw = DartUpPassword(username, salt, dbCrypt.hashpw(password, salt));
+    pws[pw.username] = pw;
+    var sink = await file.openWrite();
+    for (var pw in pws.values) {
+      sink.writeln(pw);
+    }
+    await sink.close();
+  }
+
   Future<bool> verify(String username, String password) async {
     var pws = await read();
     var pw = pws[username];
@@ -64,6 +76,11 @@ class DartUpPassword {
       : username = parts[0],
         salt = parts[1],
         hashedPassword = parts[2];
+
+  @override
+  String toString() {
+    return '$username:$salt:$hashedPassword';
+  }
 }
 
 class DartUpAppsDirectory {
