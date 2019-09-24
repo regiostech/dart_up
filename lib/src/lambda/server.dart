@@ -7,18 +7,26 @@ class LambdaServer {
   final json_rpc_2.Server server;
   final FutureOr<Response> Function(Request) handleRequest;
 
-  LambdaServer(this.server, this.handleRequest);
+  LambdaServer(this.server, this.handleRequest) {
+    addHandlers();
+  }
 
   LambdaServer.withoutJson(StreamChannel channel, this.handleRequest)
-      : server = json_rpc_2.Server.withoutJson(channel);
+      : server = json_rpc_2.Server(channel.cast()) {
+    addHandlers();
+  }
 
   void close() => server.close();
 
-  Future<void> listen() {
+  void addHandlers() {
     server.registerMethod('request', (json_rpc_2.Parameters params) async {
       var rq = Request.fromJson(params.asMap.cast());
-      return await handleRequest(rq);
+      var rs = await handleRequest(rq);
+      return rs.toJson();
     });
+  }
+
+  Future<void> listen() {
     return server.listen();
   }
 }

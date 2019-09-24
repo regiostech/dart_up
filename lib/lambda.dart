@@ -13,7 +13,6 @@ Future<void> runLambda(
     var channel = IsolateChannel.connectSend(sp);
     var server = LambdaServer.withoutJson(channel, handleRequest);
     await server.listen();
-    await server.close();
   } else {
     // In development, just mount an HTTP server.
     var port = 8000;

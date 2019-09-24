@@ -56,12 +56,11 @@ class ServeCommand extends Command {
 
     Future<Application> getApplicationFromBody(RequestContext req) async {
       var name = await getNameFromBody(req);
-      var app = apps[name];
-      if (app == null) {
+      if (!apps.containsKey(name)) {
         throw AngelHttpException.notFound(
             message: 'No application named "$name" exists.');
       }
-      return app;
+      return apps[name];
     }
 
     app.get('/list', (req, res) => apps);
@@ -85,7 +84,7 @@ class ServeCommand extends Command {
     app.post('/remove', (req, res) async {
       // Kill the app.
       var app = await getApplicationFromBody(req);
-      await app.kill();
+      await app?.kill();
 
       // Remove it from the list, and delete the directory.
       apps.remove(app.name);
@@ -146,9 +145,9 @@ class ServeCommand extends Command {
             message: 'Application "$lambdaName" is not a lambda.');
       } else {
         // Spawn the app, if it's dead.
-        if (app.isDead) {
-          await app.start();
-        }
+        // if (app.isDead) {
+        await app.start();
+        // }
 
         // Read headers
         var headers = <String, String>{};

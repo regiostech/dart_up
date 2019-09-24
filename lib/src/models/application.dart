@@ -13,7 +13,7 @@ class Application {
   ReceivePort onExit = ReceivePort(), onError = ReceivePort(), lambdaPort;
   Object error;
   LambdaClient lambdaClient;
-  Duration lambdaKillDuration = Duration(seconds: 3);
+  Duration lambdaKillDuration = Duration(seconds: 10);
   Timer lambdaKillTimer;
 
   Application(this.name, this.autoRestart, this.isLambda, this.dillUri,
@@ -59,7 +59,7 @@ class Application {
   Future<void> kill() async {
     lambdaKillTimer?.cancel();
     lambdaClient?.close();
-    isolate.kill();
+    isolate?.kill();
     isDead = true;
     onExit.close();
     onError.close();

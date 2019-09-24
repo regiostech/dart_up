@@ -6,10 +6,14 @@ import 'package:stream_channel/stream_channel.dart';
 class LambdaClient {
   final json_rpc_2.Client client;
 
-  LambdaClient(this.client);
+  LambdaClient(this.client) {
+    client.listen();
+  }
 
   LambdaClient.withoutJson(StreamChannel channel)
-      : client = json_rpc_2.Client.withoutJson(channel);
+      : client = json_rpc_2.Client(channel.cast()) {
+    client.listen();
+  }
 
   void close() => client.close();
 
