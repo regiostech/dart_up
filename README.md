@@ -107,6 +107,27 @@ Run "dart_up help <command>" for more information about a command.
 manage an instance of this application, restarting it if it
 ever crashes.
 
+### Password Authentication
+`dart_up` supports `bcrypt`-hashed passwords, and uses `Basic` authentication
+to ensure that external clients have access to the daemon. `dart_up` can also
+be configured to even required passwords for requests from `localhost`.
+
+```bash
+# Always require Basic authentication, even for localhost.
+# Otherwise, it'll only be required for external clients.
+$ dart_up serve --require-password
+
+# Disregard `x-forwarded-for` header, i.e. if you're not using nginx `proxy_pass`.
+$ dart_up serve --require-password --no-x-forwarded-for
+
+# Any so-called "client command," like `list`, `push`, etc., takes a `--basic-auth`/`-B` option.
+# This way, you'll be prompted for a username and password.
+$ dart_up list -B
+✔ Username ‥ my_username
+✔ Password [hidden] ‥ *****
+ • hello - dead
+```
+
 # Deploying `dart_up`
 You more than likely don't want the `dart_up` daemon to face
 the Web. In fact, you might not even want it to be accessible
