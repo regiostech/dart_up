@@ -45,9 +45,9 @@ class ApplicationDirectory {
   }
 
   Future<Application> spawn() async {
-    var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
-        packageConfig: packagesFile.uri);
-    return Application(name, await autoRestart, await isLambda,
-        dillFile.absolute.uri, packagesFile.uri, isolate);
+    var app = Application(name, await autoRestart, await isLambda,
+        dillFile.absolute.uri, packagesFile.uri);
+    await app.start();
+    return app;
   }
 }

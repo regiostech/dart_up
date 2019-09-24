@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:dart_up/src/lambda/client.dart';
 import 'package:io/ansi.dart';
+import 'package:stream_channel/isolate_channel.dart';
 
 class Application {
   String name;
@@ -8,23 +10,36 @@ class Application {
   bool autoRestart, isLambda;
   bool isDead = false;
   Uri dillUri, packagesUri;
-  ReceivePort onExit = ReceivePort(), onError = ReceivePort();
+  ReceivePort onExit = ReceivePort(), onError = ReceivePort(), lambdaPort;
   Object error;
+  LambdaClient lambdaClient;
 
   Application(this.name, this.autoRestart, this.isLambda, this.dillUri,
-      this.packagesUri, this.isolate) {
-    isolate.addOnExitListener(onExit.sendPort);
-    isolate.addErrorListener(onError.sendPort);
+      this.packagesUri) {
+    onError.listen((e) => error = e);
     onExit.listen((_) async {
       isDead = true;
-      if (autoRestart) {
-        isolate = await Isolate.spawnUri(dillUri, [], null,
-            packageConfig: packagesUri,
-            onError: onError.sendPort,
-            onExit: onExit.sendPort);
+      if (autoRestart && !isLambda) {
+        await start();
       }
     });
-    onError.listen((e) => error = e);
+  }
+
+  Future<void> start() async {
+    SendPort message;
+    if (isLambda) {
+      lambdaClient?.close();
+      lambdaPort?.close();
+      lambdaPort = ReceivePort();
+      message = lambdaPort.sendPort;
+      lambdaClient =
+          LambdaClient.withoutJson(IsolateChannel.connectReceive(lambdaPort));
+    }
+
+    isolate = await Isolate.spawnUri(dillUri, [], message,
+        packageConfig: packagesUri,
+        onError: onError.sendPort,
+        onExit: onExit.sendPort);
   }
 
   Application.fromJson(Map m)
