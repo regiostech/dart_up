@@ -51,6 +51,10 @@ class ApplicationDirectory {
 
   File get pubspecFile => File(p.join(directory.path, 'pubspec.yaml'));
 
+  Future<void> delete() async {
+    await directory.delete(recursive: true);
+  }
+
   Future<Application> spawn() async {
     var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
         packageConfig: packagesFile.uri);
@@ -95,18 +99,19 @@ class Application {
   @override
   String toString() {
     var buf = StringBuffer();
-    buf.write(' • $name (');
+    buf.write(' • ');
+    buf.write(styleBold.wrap(name));
+    buf.write(' - ');
     if (isDead) {
       if (error != null) {
         buf.write(red.wrap('error'));
-        buf.write(') • $error');
+        buf.write(' - ');
+        buf.write(red.wrap(error.toString()));
       } else {
         buf.write(darkGray.wrap('dead'));
-        buf.write(')');
       }
     } else {
       buf.write(green.wrap('alive'));
-      buf.write(')');
     }
     return buf.toString();
   }

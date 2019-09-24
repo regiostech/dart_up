@@ -19,6 +19,13 @@ class PushCommand extends ClientCommand {
   String get description =>
       'Builds an app snapshot, and pushes it to a dart_up server.';
 
+  PushCommand() {
+    argParser.addOption('name',
+        abbr: 'n',
+        help:
+            'An explicit name for the application; otherwise the pubspec.yaml name is used.');
+  }
+
   @override
   Future runWithClient(Angel app) async {
     if (argResults.rest.isEmpty) {
@@ -37,8 +44,12 @@ class PushCommand extends ClientCommand {
       if (exitCode != 0) {
         stderr.writeln(red.wrap('Building a snapshot failed.'));
       } else {
-        var pushUrl = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'push'));
+        var pushUrl =
+            app.baseUrl.replace(path: p.join(app.baseUrl.path, 'push'));
         var rq = http.MultipartRequest('POST', pushUrl);
+        if (argResults.wasParsed('name')) {
+          rq.fields['name'] = argResults['name'] as String;
+        }
         rq.fields['pubspec'] = await File('pubspec.yaml').readAsString();
         rq.files.add(await http.MultipartFile.fromPath(
           'app_dill',

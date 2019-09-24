@@ -81,6 +81,18 @@ class ServeCommand extends Command {
       }
     });
 
+    app.post('/remove', (req, res) async {
+      // Kill the app.
+      var app = await getApplicationFromBody(req);
+      await app.kill();
+
+      // Remove it from the list, and delete the directory.
+      apps.remove(app.name);
+      var appDir = await dartUpDir.appsDir.create(app.name);
+      await appDir.delete();
+      return app;
+    });
+
     app.post('/push', (req, res) async {
       await req.parseBody();
       var appDill = req.uploadedFiles.firstWhere(
@@ -100,7 +112,7 @@ class ServeCommand extends Command {
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
 
-      // Download the dependencies. 
+      // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
       var pub = await Process.run('pub', ['get', '--no-precompile'],
@@ -108,7 +120,7 @@ class ServeCommand extends Command {
       if (pub.exitCode != 0) {
         throw StateError('`pub get` failed.');
       }
-      
+
       // Save the dill file, and spawn an isolate.
       await appDill.data.pipe(appDir.dillFile.openWrite());
       return apps[appName] = await appDir.spawn();
