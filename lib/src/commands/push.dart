@@ -4,6 +4,7 @@ import 'package:angel_client/angel_client.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:io/ansi.dart';
 import 'package:path/path.dart' as p;
 import 'client_command.dart';
@@ -36,9 +37,12 @@ class PushCommand extends ClientCommand {
       } else {
         var uri = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'add'));
         var rq = http.MultipartRequest('POST', uri);
-        rq.files.add(await http.MultipartFile.fromPath('app_dill', dillFile));
-        rq.files
-            .add(await http.MultipartFile.fromPath('pubspec', 'pubspec.yaml'));
+        rq.fields['pubspec'] = await File('pubspec.yaml').readAsString();
+        rq.files.add(await http.MultipartFile.fromPath(
+          'app_dill',
+          dillFile,
+          contentType: MediaType('application', 'dill'),
+        ));
         var rs = await app.send(rq).then(http.Response.fromStream);
         if (rs.statusCode != 200) {
           throw AngelHttpException.fromJson(rs.body);

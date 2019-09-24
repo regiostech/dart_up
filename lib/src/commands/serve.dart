@@ -39,15 +39,15 @@ class ServeCommand extends Command {
     app.get('/list', (req, res) => apps);
 
     app.post('/add', (req, res) async {
+      await req.parseBody();
       var appDill = req.uploadedFiles.firstWhere(
           (f) => f.contentType.mimeType == 'application/dill',
           orElse: () => throw FormatException(
               'Missing application/dill file in payload.'));
-      var pubspecYamlFile = req.uploadedFiles.firstWhere(
-          (f) => f.contentType.mimeType == 'text/yaml',
-          orElse: () =>
-              throw FormatException('Missing text/yaml file in payload.'));
-      var pubspecYaml = await pubspecYamlFile.readAsString();
+      var pubspecYaml = req.bodyAsMap['pubspec'] as String;
+      if (pubspecYaml == null) {
+        throw FormatException('Missing "pubspec" field.');
+      }
       var pubspec = Pubspec.parse(pubspecYaml);
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
