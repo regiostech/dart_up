@@ -113,6 +113,12 @@ to ensure that external clients have access to the daemon. `dart_up` can also
 be configured to even required passwords for requests from `localhost`.
 
 ```bash
+# Set a password. Obviously, be smart about file permissions. Even though
+# the passwords are strongly-hashed, the *usernames* are plain text.
+$ dart_up password my_username
+✔ Password [hidden] ‥ ***********
+Successfully edited file .dart_tool/dart_up/passwords.
+
 # Always require Basic authentication, even for localhost.
 # Otherwise, it'll only be required for external clients.
 $ dart_up serve --require-password
