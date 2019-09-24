@@ -120,6 +120,7 @@ class ServeCommand extends Command {
         throw AngelHttpException.notAuthenticated(
             message: 'Invalid username or password.');
       }
+      return true;
     }
 
     var protectedRouter = app.chain([enforceAuth]);
