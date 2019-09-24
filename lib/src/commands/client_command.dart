@@ -28,8 +28,7 @@ abstract class ClientCommand<T> extends Command<T> {
 
     if (argResults['basic-auth'] as bool) {
       var username = prompts.get('Username');
-      var password = prompts.get('Password', conceal: true);
-      // var password = prompts.get('Password [hidden]', conceal: true);
+      var password = prompts.get('Password [hidden]', conceal: true);
       var authString = '$username:$password';
       var encoded = base64Url.encode(utf8.encode(authString));
       app = _InjectBasicAuth(app, encoded);
