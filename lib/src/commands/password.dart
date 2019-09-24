@@ -17,7 +17,7 @@ class PasswordCommand extends Command {
       throw UsageException('A username must be provided.', usage);
     } else {
       var username = argResults.rest[0];
-      var dartUpDir = DartUpDirectory(Directory.current);
+      var dartUpDir = DartUpDirectory.dartTool();
       var password = await prompts.get('Password [hidden]', conceal: true);
       await dartUpDir.passwordFile.savePassword(username, password);
       print(green.wrap(

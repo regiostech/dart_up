@@ -43,7 +43,7 @@ class ServeCommand extends Command {
     app.errorHandler = (e, req, res) => e;
 
     // Load the existing dart_up dir + config, etc.
-    var dartUpDir = DartUpDirectory(Directory(p.join('.dart_tool', 'dart_up')));
+    var dartUpDir = DartUpDirectory.dartTool();
     await dartUpDir.initialize();
 
     // Spawn every app we have saved.
@@ -96,10 +96,15 @@ class ServeCommand extends Command {
       // If no password is required, pass through.
       if (!requiresPassword) return true;
 
+      var wwwAuthenticate =
+          'Basic realm="Username and password are required.", charset="UTF-8"';
+
       // Otherwise, try to perform Basic authentication.
       var authHeader = req.headers.value('authorization');
-      if (authHeader != null || !authHeader.startsWith('Basic ')) {
-        throw FormatException('Basic authentication is required.');
+      if (authHeader == null || !authHeader.startsWith('Basic ')) {
+        res.headers['www-authenticate'] = wwwAuthenticate;
+        throw AngelHttpException.notAuthenticated(
+            message: 'Basic authentication is required.');
       }
 
       // Decode the username and password
@@ -115,8 +120,7 @@ class ServeCommand extends Command {
       }
 
       if (!await dartUpDir.passwordFile.verify(authParts[0], authParts[1])) {
-        res.headers['www-authenticate'] =
-            'Basic realm="Username and password are required.", charset="UTF-8"';
+        res.headers['www-authenticate'] = wwwAuthenticate;
         throw AngelHttpException.notAuthenticated(
             message: 'Invalid username or password.');
       }

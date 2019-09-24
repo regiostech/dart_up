@@ -13,6 +13,10 @@ class DartUpDirectory {
 
   DartUpDirectory(this.directory);
 
+  factory DartUpDirectory.dartTool() {
+    return DartUpDirectory(Directory(p.join('.dart_tool', 'dart_up')));
+  }
+
   DartUpAppsDirectory get appsDir => _appsDir ??=
       DartUpAppsDirectory(Directory(p.join(directory.path, 'apps')));
 
