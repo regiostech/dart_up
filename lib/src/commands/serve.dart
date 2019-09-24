@@ -36,6 +36,27 @@ class ServeCommand extends Command {
 
     var apps = <String, Application>{};
 
+    // Spawn every app we have saved.
+    var dartUpDir = await Directory(p.join('.dart_tool', 'dart_up'))
+        .create(recursive: true);
+    var dartUpAppsDir =
+        await Directory(p.join(dartUpDir.path, 'apps')).create(recursive: true);
+
+    await for (var dir in dartUpAppsDir.list()) {
+      if (dir is Directory) {
+        var name = p.basename(dir.path);
+        // Find the app.dill and .packages.
+        var packagesFile = File(p.join(dir.path, '.packages'));
+        // Save the dill file, and spawn an isolate.
+        var dillFile = File(p.join(dir.path, 'app.dill'));
+        var isolate = await Isolate.spawnUri(dillFile.uri, [], null,
+            packageConfig: packagesFile.uri);
+        var appModel = Application(isolate);
+        apps[name] = appModel;
+        return appModel;
+      }
+    }
+
     app.get('/list', (req, res) => apps);
 
     app.post('/add', (req, res) async {
@@ -52,18 +73,20 @@ class ServeCommand extends Command {
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
       // Download the dependencies into a temp dir.
-      var tempDir = await Directory.systemTemp.createTemp();
+      // var appDir = await Directory.systemTemp.createTemp();
+      var appDir =
+          await Directory(p.join('.dart_tool', 'dart_up', 'apps', pubspec.name))
+              .create(recursive: true);
       // req.shutdownHooks.add(() => tempDir.delete(recursive: true));
-      var pubspecFile = File(p.join(tempDir.path, 'pubspec.yaml'));
+      var pubspecFile = File(p.join(appDir.path, 'pubspec.yaml'));
       await pubspecFile.writeAsString(pubspecYaml);
       var pub = await Process.run('pub', ['get', '--no-precompile']);
       // TODO: Handle error
-      var packagesFile = File(p.join(tempDir.path, '.packages'));
+      var packagesFile = File(p.join(appDir.path, '.packages'));
       // Save the dill file, and spawn an isolate.
-      var dillFile = File(p.join(tempDir.path, 'app.dill'));
+      var dillFile = File(p.join(appDir.path, 'app.dill'));
       await appDill.data.pipe(dillFile.openWrite());
       // Use the temp dir's .packages file
-      // TODO: Handle exits
       var isolate = await Isolate.spawnUri(dillFile.uri, [], null,
           packageConfig: packagesFile.uri);
       var appModel = Application(isolate);
