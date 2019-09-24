@@ -19,6 +19,14 @@ class ServeCommand extends Command {
 
   ServeCommand() {
     argParser
+      ..addFlag('require-password',
+          negatable: false,
+          help:
+              'Always require a password, even for connections from localhost.')
+      ..addFlag('x-forwarded-for',
+          defaultsTo: true,
+          help:
+              'Honor the `x-forwarded-for` header when checking user IP addresses.')
       ..addOption('address',
           abbr: 'a', defaultsTo: '127.0.0.1', help: 'The address to listen at.')
       ..addOption('port',
@@ -61,6 +69,57 @@ class ServeCommand extends Command {
             message: 'No application named "$name" exists.');
       }
       return apps[name];
+    }
+
+    // Routes
+
+    // Authentication middleware
+    Future<bool> enforceAuth(RequestContext req, ResponseContext res) async {
+      // If the admin said, "always require a password," then ALWAYS require it
+      // for administrative actions.
+      var requiresPassword = argResults['require-password'] as bool;
+      if (!requiresPassword) {
+        // Otherwise, only require the password if the user is NOT '127.0.0.1'
+        // (or the IPv6 equivalent).
+        //
+        // By default, honor the `x-forwarded-for` header (i.e. via nginx). But
+        // this can be disabled, in a case where the header's integrity cannot be
+        // verified.
+        var ip = req.ip;
+        if (argResults['x-forwarded-for'] as bool) {
+          ip = req.headers.value('x-forwarded-for') ?? ip;
+        }
+        requiresPassword = ip != InternetAddress.loopbackIPv4.address &&
+            ip != InternetAddress.loopbackIPv6.address;
+      }
+
+      // If no password is required, pass through.
+      if (!requiresPassword) return true;
+
+      // Otherwise, try to perform Basic authentication.
+      var authHeader = req.headers.value('authorization');
+      if (authHeader != null || !authHeader.startsWith('Basic ')) {
+        throw FormatException('Basic authentication is required.');
+      }
+
+      // Decode the username and password
+      var encoded = authHeader.substring(6);
+      var authString = utf8.decode(base64Url.decode(encoded));
+      var authParts = authString
+          .split(':')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (authParts.length != 2) {
+        throw FormatException('Invalid Basic authentication header.');
+      }
+
+      if (!await dartUpDir.passwordFile.verify(authParts[0], authParts[1])) {
+        res.headers['www-authenticate'] =
+            'Basic realm="Username and password are required.", charset="UTF-8"';
+        throw AngelHttpException.notAuthenticated(
+            message: 'Invalid username or password.');
+      }
     }
 
     app.get('/list', (req, res) => apps);
