@@ -38,7 +38,7 @@ class PushCommand extends ClientCommand {
           '.dart_tool', 'dart_up', p.setExtension(argResults.rest[0], '.dill'));
       await Directory(p.dirname(dillFile)).create(recursive: true);
       var logger = Logger.standard(); // TODO: Verbose?
-      var progress = logger.progress(lightGray.wrap('Building $dillFile...'));
+      var progress = logger.progress(lightGray.wrap('Building $dillFile'));
       var dart = await Process.start(Platform.resolvedExecutable,
           ['--snapshot=$dillFile', argResults.rest[0]],
           mode: ProcessStartMode.inheritStdio);

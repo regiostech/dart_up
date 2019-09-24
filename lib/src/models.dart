@@ -75,7 +75,8 @@ class ApplicationDirectory {
   Future<Application> spawn() async {
     var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
         packageConfig: packagesFile.uri);
-    return Application(name, await autoRestart, isolate);
+    return Application(name, await autoRestart, dillFile.absolute.uri,
+        packagesFile.uri, isolate);
   }
 }
 
@@ -84,13 +85,23 @@ class Application {
   Isolate isolate;
   bool autoRestart;
   bool isDead = false;
+  Uri dillUri, packagesUri;
   ReceivePort onExit = ReceivePort(), onError = ReceivePort();
   Object error;
 
-  Application(this.name, this.autoRestart, this.isolate) {
+  Application(this.name, this.autoRestart, this.dillUri, this.packagesUri,
+      this.isolate) {
     isolate.addOnExitListener(onExit.sendPort);
     isolate.addErrorListener(onError.sendPort);
-    onExit.listen((_) => isDead = true);
+    onExit.listen((_) async {
+      isDead = true;
+      if (autoRestart) {
+        isolate = await Isolate.spawnUri(dillUri, [], null,
+            packageConfig: packagesUri,
+            onError: onError.sendPort,
+            onExit: onExit.sendPort);
+      }
+    });
     onError.listen((e) => error = e);
   }
 
