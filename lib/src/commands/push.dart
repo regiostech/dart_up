@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:angel_client/angel_client.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dart_up/src/models.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:io/ansi.dart';
@@ -47,8 +49,8 @@ class PushCommand extends ClientCommand {
         if (rs.statusCode != 200) {
           throw AngelHttpException.fromJson(rs.body);
         } else {
-          // TODO: Print application from response.
-          print(green.wrap('Successfully pushed application.'));
+          var app = Application.fromJson(json.decode(rs.body) as Map);
+          print(app);
         }
       }
     }

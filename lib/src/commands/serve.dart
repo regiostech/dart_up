@@ -49,11 +49,10 @@ class ServeCommand extends Command {
         var packagesFile = File(p.join(dir.path, '.packages'));
         // Save the dill file, and spawn an isolate.
         var dillFile = File(p.join(dir.path, 'app.dill'));
-        var isolate = await Isolate.spawnUri(dillFile.uri, [], null,
+        var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
             packageConfig: packagesFile.uri);
-        var appModel = Application(isolate);
+        var appModel = Application(name, isolate);
         apps[name] = appModel;
-        return appModel;
       }
     }
 
@@ -87,9 +86,9 @@ class ServeCommand extends Command {
       var dillFile = File(p.join(appDir.path, 'app.dill'));
       await appDill.data.pipe(dillFile.openWrite());
       // Use the temp dir's .packages file
-      var isolate = await Isolate.spawnUri(dillFile.uri, [], null,
+      var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
           packageConfig: packagesFile.uri);
-      var appModel = Application(isolate);
+      var appModel = Application(pubspec.name, isolate);
       apps[pubspec.name] = appModel;
       return appModel;
     });
