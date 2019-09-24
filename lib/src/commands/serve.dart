@@ -43,23 +43,42 @@ class ServeCommand extends Command {
       apps[appDir.name] = await appDir.spawn();
     }
 
-    app.get('/list', (req, res) => apps);
-
-    app.post('/kill', (req, res) async {
+    // Helpers
+    Future<String> getNameFromBody(RequestContext req) async {
       var body = await req.parseBody().then((_) => req.bodyAsMap);
       if (!body.containsKey('name')) {
         throw FormatException('Missing "name" in body.');
       }
 
-      var name = body['name'] as String;
+      return body['name'] as String;
+    }
+
+    Future<Application> getApplicationFromBody(RequestContext req) async {
+      var name = await getNameFromBody(req);
       var app = apps[name];
       if (app == null) {
         throw AngelHttpException.notFound(
             message: 'No app named "$name" exists.');
       }
+      return app;
+    }
 
+    app.get('/list', (req, res) => apps);
+
+    app.post('/kill', (req, res) async {
+      var app = await getApplicationFromBody(req);
       await app.kill();
       return app;
+    });
+
+    app.post('/start', (req, res) async {
+      var app = await getApplicationFromBody(req);
+      if (!app.isDead) {
+        return app;
+      } else {
+        var appDir = await dartUpDir.appsDir.create(app.name);
+        return apps[app.name] = await appDir.spawn();
+      }
     });
 
     app.post('/add', (req, res) async {
