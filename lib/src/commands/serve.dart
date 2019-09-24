@@ -126,6 +126,8 @@ class ServeCommand extends Command {
       var options = <String, dynamic>{};
       options[ApplicationDirectory.autoRestartOption] =
           req.bodyAsMap.containsKey(ApplicationDirectory.autoRestartOption);
+      options[ApplicationDirectory.lambdaOption] =
+          req.bodyAsMap.containsKey(ApplicationDirectory.lambdaOption);
       await appDir.optionsFile.writeAsString(json.encode(options));
 
       // Save the dill file, and spawn an isolate.
