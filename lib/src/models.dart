@@ -14,7 +14,9 @@ class Application {
     onError.listen((e) => error = e);
   }
 
-  Application.fromJson(Map m) : isDead = m['is_dead'] == true;
+  Application.fromJson(Map m)
+      : error = m['error'],
+        isDead = m['is_dead'] == true;
 
   Future<void> kill() async {
     isolate.kill();
@@ -25,7 +27,7 @@ class Application {
 
   Map<String, dynamic> toJson() {
     return {
-      'error': error,
+      'error': error?.toString(),
       'is_dead': isDead,
     };
   }
