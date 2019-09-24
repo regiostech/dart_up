@@ -111,7 +111,7 @@ class ServeCommand extends Command {
       var appName = req.bodyAsMap['name'] as String ?? pubspec.name;
 
       // Kill existing application, if any.
-      await apps.remove(pubspec.name)?.kill();
+      await apps.remove(appName)?.kill();
 
       // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
