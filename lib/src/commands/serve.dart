@@ -58,6 +58,23 @@ class ServeCommand extends Command {
 
     app.get('/list', (req, res) => apps);
 
+    app.post('/kill', (req, res) async {
+      var body = await req.parseBody().then((_) => req.bodyAsMap);
+      if (!body.containsKey('name')) {
+        throw FormatException('Missing "name" in body.');
+      }
+
+      var name = body['name'] as String;
+      var app = apps[name];
+      if (app == null) {
+        throw AngelHttpException.notFound(
+            message: 'No app named "$name" exists.');
+      }
+
+      await app.kill();
+      return app;
+    });
+
     app.post('/add', (req, res) async {
       await req.parseBody();
       var appDill = req.uploadedFiles.firstWhere(
