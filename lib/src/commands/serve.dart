@@ -164,8 +164,8 @@ class ServeCommand extends Command {
         res
           ..statusCode = rs.statusCode
           ..headers.addAll(rs.headers);
-        if (rs.body != null) {
-          res.add(rs.body);
+        if (rs.bodyBase64 != null) {
+          res.add(base64.decode(rs.bodyBase64));
         } else if (rs.text != null) {
           res.write(rs.text);
         }

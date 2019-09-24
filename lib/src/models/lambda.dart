@@ -60,12 +60,22 @@ class Response {
 
   int statusCode;
 
-  List<int> body;
+  String bodyBase64;
 
   String text;
 
   Response(
-      {this.headers = const {}, this.statusCode = 200, this.body, this.text});
+      {this.headers = const {},
+      this.statusCode = 200,
+      this.bodyBase64,
+      this.text});
+
+  factory Response.blob(List<int> data,
+          {Map<String, String> headers = const {}, int statusCode = 200}) =>
+      Response(
+          bodyBase64: base64.encode(data),
+          headers: {'content-type': 'text/plain'}..addAll(headers ?? {}),
+          statusCode: statusCode);
 
   factory Response.text(String text,
           {Map<String, String> headers = const {}, int statusCode = 200}) =>

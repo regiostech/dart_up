@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:dart_up/src/lambda/server.dart';
@@ -30,8 +31,8 @@ Future<void> runLambda(
       rs.headers?.forEach(response.headers.add);
       if (rs.text != null) {
         response.write(rs.text);
-      } else if (rs.body != null) {
-        response.add(rs.body);
+      } else if (rs.bodyBase64 != null) {
+        response.add(base64.decode(rs.bodyBase64));
       }
       await response.close();
     });

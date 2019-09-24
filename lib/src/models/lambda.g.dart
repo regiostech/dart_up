@@ -40,7 +40,7 @@ Response _$ResponseFromJson(Map<String, dynamic> json) {
       (k, e) => MapEntry(k, e as String),
     ),
     statusCode: json['statusCode'] as int,
-    body: (json['body'] as List)?.map((e) => e as int)?.toList(),
+    bodyBase64: json['bodyBase64'] as String,
     text: json['text'] as String,
   );
 }
@@ -48,6 +48,6 @@ Response _$ResponseFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$ResponseToJson(Response instance) => <String, dynamic>{
       'headers': instance.headers,
       'statusCode': instance.statusCode,
-      'body': instance.body,
+      'bodyBase64': instance.bodyBase64,
       'text': instance.text,
     };
