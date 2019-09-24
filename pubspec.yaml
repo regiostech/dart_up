@@ -1,0 +1,15 @@
+name: dart_up
+version: 0.0.0
+description: Dart Web application container; run multiple apps in one VM.
+dependencies:
+  angel_framework: ^2.0.0
+  args: ^1.0.0
+  io: ^0.3.2
+  json_rpc_2: ^2.0.0
+  logging: ^0.11.0
+  pretty_logging: ^1.0.0
+  stream_channel: ^2.0.0
+dev_dependencies:
+  pedantic: ^1.0.0
+executables:
+  dart_up: dart_up
