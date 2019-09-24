@@ -17,7 +17,8 @@ abstract class ClientCommand<T> extends Command<T> {
           negatable: false,
           help: 'Prompt for a username and password before taking action.')
       ..addOption('url',
-          defaultsTo: 'http://127.0.0.1:2374',
+          defaultsTo:
+              Platform.environment['DART_UP_URL'] ?? 'http://127.0.0.1:2374',
           help: 'The URL of the running dart_up server.');
   }
 
