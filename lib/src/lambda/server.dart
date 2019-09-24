@@ -3,15 +3,14 @@ import 'package:dart_up/src/models.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc_2;
 import 'package:stream_channel/stream_channel.dart';
 
-abstract class LambdaServer {
+class LambdaServer {
   final json_rpc_2.Server server;
+  final FutureOr<Response> Function(Request) handleRequest;
 
-  LambdaServer(this.server);
+  LambdaServer(this.server, this.handleRequest);
 
-  LambdaServer.withoutJson(StreamChannel channel)
+  LambdaServer.withoutJson(StreamChannel channel, this.handleRequest)
       : server = json_rpc_2.Server.withoutJson(channel);
-
-  FutureOr<Response> handleRequest(Request req);
 
   void close() => server.close();
 
