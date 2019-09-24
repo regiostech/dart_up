@@ -81,7 +81,7 @@ class ServeCommand extends Command {
       }
     });
 
-    app.post('/add', (req, res) async {
+    app.post('/push', (req, res) async {
       await req.parseBody();
       var appDill = req.uploadedFiles.firstWhere(
           (f) => f.contentType.mimeType == 'application/dill',
@@ -92,23 +92,30 @@ class ServeCommand extends Command {
         throw FormatException('Missing "pubspec" field.');
       }
 
+      // The user can specify a name for the app; otherwise,
+      // default to the pubspec's name.
       var pubspec = Pubspec.parse(pubspecYaml);
+      var appName = req.bodyAsMap['name'] as String ?? pubspec.name;
+
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
-      // Download the dependencies.
-      var appDir = await dartUpDir.appsDir.create(pubspec.name);
+
+      // Download the dependencies. 
+      var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
       var pub = await Process.run('pub', ['get', '--no-precompile'],
           workingDirectory: appDir.directory.path);
       if (pub.exitCode != 0) {
         throw StateError('`pub get` failed.');
       }
+      
       // Save the dill file, and spawn an isolate.
       await appDill.data.pipe(appDir.dillFile.openWrite());
-      return apps[pubspec.name] = await appDir.spawn();
+      return apps[appName] = await appDir.spawn();
     });
 
-    app.fallback((req, res) => throw AngelHttpException.notFound());
+    app.fallback((req, res) =>
+        throw AngelHttpException.notFound(message: 'Invalid URL: ${req.uri}'));
 
     await http.startServer(
         argResults['address'], int.parse(argResults['port'] as String));

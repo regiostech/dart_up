@@ -37,8 +37,8 @@ class PushCommand extends ClientCommand {
       if (exitCode != 0) {
         stderr.writeln(red.wrap('Building a snapshot failed.'));
       } else {
-        var uri = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'add'));
-        var rq = http.MultipartRequest('POST', uri);
+        var pushUrl = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'push'));
+        var rq = http.MultipartRequest('POST', pushUrl);
         rq.fields['pubspec'] = await File('pubspec.yaml').readAsString();
         rq.files.add(await http.MultipartFile.fromPath(
           'app_dill',
