@@ -17,6 +17,9 @@ class ListCommand extends ClientCommand {
   Future runWithClient(Angel app) async {
     var listUrl = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'list'));
     var response = await app.get(listUrl);
+    if (response.statusCode != 200) {
+      throw AngelHttpException.fromJson(response.body);
+    }
     var data = (json.decode(response.body) as Map)
         .cast<String, Map<String, dynamic>>();
     if (data.isEmpty) {

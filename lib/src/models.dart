@@ -1,8 +1,62 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-
 import 'package:io/ansi.dart';
+import 'package:path/path.dart' as p;
+
+class DartUpDirectory {
+  final Directory directory;
+  DartUpAppsDirectory _appsDir;
+
+  DartUpDirectory(this.directory);
+
+  Future<void> initialize() async {
+    await appsDir.directory.create(recursive: true);
+  }
+
+  DartUpAppsDirectory get appsDir => _appsDir ??=
+      DartUpAppsDirectory(Directory(p.join(directory.path, 'apps')));
+}
+
+class DartUpAppsDirectory {
+  final Directory directory;
+
+  DartUpAppsDirectory(this.directory);
+
+  Future<ApplicationDirectory> create(String name) async {
+    var dir =
+        await Directory(p.join(directory.path, name)).create(recursive: true);
+    return ApplicationDirectory(dir);
+  }
+
+  Stream<ApplicationDirectory> findApps() async* {
+    await for (var dir in directory.list()) {
+      if (dir is Directory) {
+        yield ApplicationDirectory(dir);
+      }
+    }
+  }
+}
+
+class ApplicationDirectory {
+  final Directory directory;
+
+  ApplicationDirectory(this.directory);
+
+  String get name => p.basename(directory.path);
+
+  File get packagesFile => File(p.join(directory.path, '.packages'));
+
+  File get dillFile => File(p.join(directory.path, 'app.dill'));
+
+  File get pubspecFile => File(p.join(directory.path, 'pubspec.yaml'));
+
+  Future<Application> spawn() async {
+    var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
+        packageConfig: packagesFile.uri);
+    return Application(name, isolate);
+  }
+}
 
 class Application {
   String name;
@@ -54,7 +108,6 @@ class Application {
       buf.write(green.wrap('alive'));
       buf.write(')');
     }
-    buf.writeln();
     return buf.toString();
   }
 }

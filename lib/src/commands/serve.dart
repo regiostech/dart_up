@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'package:angel_framework/angel_framework.dart';
 import 'package:angel_framework/http.dart';
 import 'package:args/command_runner.dart';
@@ -34,26 +33,14 @@ class ServeCommand extends Command {
     var app = Angel(logger: logger), http = AngelHttp(app);
     app.errorHandler = (e, req, res) => e;
 
-    var apps = <String, Application>{};
+    // Load the existing dart_up dir + config, etc.
+    var dartUpDir = DartUpDirectory(Directory(p.join('.dart_tool', 'dart_up')));
+    await dartUpDir.initialize();
 
     // Spawn every app we have saved.
-    var dartUpDir = await Directory(p.join('.dart_tool', 'dart_up'))
-        .create(recursive: true);
-    var dartUpAppsDir =
-        await Directory(p.join(dartUpDir.path, 'apps')).create(recursive: true);
-
-    await for (var dir in dartUpAppsDir.list()) {
-      if (dir is Directory) {
-        var name = p.basename(dir.path);
-        // Find the app.dill and .packages.
-        var packagesFile = File(p.join(dir.path, '.packages'));
-        // Save the dill file, and spawn an isolate.
-        var dillFile = File(p.join(dir.path, 'app.dill'));
-        var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
-            packageConfig: packagesFile.uri);
-        var appModel = Application(name, isolate);
-        apps[name] = appModel;
-      }
+    var apps = <String, Application>{};
+    await for (var appDir in dartUpDir.appsDir.findApps()) {
+      apps[appDir.name] = await appDir.spawn();
     }
 
     app.get('/list', (req, res) => apps);
@@ -85,29 +72,21 @@ class ServeCommand extends Command {
       if (pubspecYaml == null) {
         throw FormatException('Missing "pubspec" field.');
       }
+
       var pubspec = Pubspec.parse(pubspecYaml);
       // Kill existing application, if any.
       await apps.remove(pubspec.name)?.kill();
-      // Download the dependencies into a temp dir.
-      // var appDir = await Directory.systemTemp.createTemp();
-      var appDir =
-          await Directory(p.join('.dart_tool', 'dart_up', 'apps', pubspec.name))
-              .create(recursive: true);
-      // req.shutdownHooks.add(() => tempDir.delete(recursive: true));
-      var pubspecFile = File(p.join(appDir.path, 'pubspec.yaml'));
-      await pubspecFile.writeAsString(pubspecYaml);
-      var pub = await Process.run('pub', ['get', '--no-precompile']);
-      // TODO: Handle error
-      var packagesFile = File(p.join(appDir.path, '.packages'));
+      // Download the dependencies.
+      var appDir = await dartUpDir.appsDir.create(pubspec.name);
+      await appDir.pubspecFile.writeAsString(pubspecYaml);
+      var pub = await Process.run('pub', ['get', '--no-precompile'],
+          workingDirectory: appDir.directory.path);
+      if (pub.exitCode != 0) {
+        throw StateError('`pub get` failed.');
+      }
       // Save the dill file, and spawn an isolate.
-      var dillFile = File(p.join(appDir.path, 'app.dill'));
-      await appDill.data.pipe(dillFile.openWrite());
-      // Use the temp dir's .packages file
-      var isolate = await Isolate.spawnUri(dillFile.absolute.uri, [], null,
-          packageConfig: packagesFile.uri);
-      var appModel = Application(pubspec.name, isolate);
-      apps[pubspec.name] = appModel;
-      return appModel;
+      await appDill.data.pipe(appDir.dillFile.openWrite());
+      return apps[pubspec.name] = await appDir.spawn();
     });
 
     app.fallback((req, res) => throw AngelHttpException.notFound());

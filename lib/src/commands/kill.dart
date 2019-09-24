@@ -21,6 +21,9 @@ class KillCommand extends ClientCommand {
 
     var killUrl = app.baseUrl.replace(path: p.join(app.baseUrl.path, 'kill'));
     var response = await app.post(killUrl, body: {'name': argResults.rest[0]});
+    if (response.statusCode != 200) {
+      throw AngelHttpException.fromJson(response.body);
+    }
 
     var killed = Application.fromJson(json.decode(response.body) as Map);
     print(killed);
