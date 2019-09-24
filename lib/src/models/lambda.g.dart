@@ -13,7 +13,7 @@ Request _$RequestFromJson(Map<String, dynamic> json) {
     ),
     url: json['path'] as String,
     method: json['method'] as String,
-    body: json['body'],
+    bodyBase64: json['body'] as String,
   )..states = json['states'] as Map<String, dynamic>;
 }
 
@@ -29,7 +29,7 @@ Map<String, dynamic> _$RequestToJson(Request instance) {
   writeNotNull('headers', instance.headers);
   writeNotNull('path', instance.url);
   writeNotNull('method', instance.method);
-  writeNotNull('body', instance.body);
+  writeNotNull('body', instance.bodyBase64);
   val['states'] = instance.states;
   return val;
 }

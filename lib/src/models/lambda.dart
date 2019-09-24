@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
-
+import 'dart:typed_data';
+import 'package:body_parser/body_parser.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'lambda.g.dart';
 
 @JsonSerializable()
 class Request {
+  Uint8List _body;
+  BodyParseResult _bodyParse;
   Uri _uri;
 
   @JsonKey(name: 'headers', includeIfNull: false)
@@ -19,13 +24,29 @@ class Request {
   String method;
 
   @JsonKey(name: 'body', includeIfNull: false)
-  Object body;
+  String bodyBase64;
 
   Map<String, dynamic> states = {};
 
-  Request({this.headers = const {}, this.url, this.method, this.body});
+  Request({this.headers = const {}, this.url, this.method, this.bodyBase64});
 
-  Map<String, dynamic> get bodyAsMap => body as Map<String, dynamic>;
+  List<int> get body {
+    if (bodyBase64 == null) return [];
+    return _body ??= base64.decode(bodyBase64);
+  }
+
+  Future<BodyParseResult> parseBody() async {
+    if (_bodyParse != null) return _bodyParse;
+    var contentType =
+        MediaType.parse(headers['content-type'] ?? 'binary/octet-stream');
+    return _bodyParse = await parseBodyFromStream(
+        Stream.fromIterable([body]), contentType, uri);
+  }
+
+  Future<Map<String, dynamic>> parseBodyAsMap() async {
+    var body = await parseBody();
+    return body.body;
+  }
 
   factory Request.fromJson(Map<String, dynamic> json) =>
       _$RequestFromJson(json);

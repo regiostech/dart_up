@@ -158,7 +158,7 @@ class ServeCommand extends Command {
           method: req.method,
           url: req.uri.toString(),
           headers: headers,
-          body: bb.isEmpty ? null : base64.encode(bb.takeBytes()),
+          bodyBase64: bb.isEmpty ? null : base64.encode(bb.takeBytes()),
         );
         var rs = await app.lambdaClient.send(rq);
         res
