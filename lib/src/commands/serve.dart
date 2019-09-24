@@ -59,7 +59,7 @@ class ServeCommand extends Command {
       var app = apps[name];
       if (app == null) {
         throw AngelHttpException.notFound(
-            message: 'No app named "$name" exists.');
+            message: 'No application named "$name" exists.');
       }
       return app;
     }
@@ -131,6 +131,45 @@ class ServeCommand extends Command {
       // Save the dill file, and spawn an isolate.
       await appDill.data.pipe(appDir.dillFile.openWrite());
       return apps[appName] = await appDir.spawn();
+    });
+
+    app.all('/:lambdaName', (req, res) async {
+      var lambdaName = req.params['lambdaName'] as String;
+      var app = apps[lambdaName];
+      if (app == null) {
+        throw AngelHttpException.notFound(
+            message: 'No application named "$lambdaName" exists.');
+      } else if (!app.isLambda) {
+        throw AngelHttpException.forbidden(
+            message: 'Application "$lambdaName" is not a lambda.');
+      } else {
+        // Read headers
+        var headers = <String, String>{};
+        req.headers.forEach((k, v) {
+          headers[k] = v.join(',');
+        });
+
+        // Read body into base64.
+        var bb = await req.body
+            .fold<BytesBuilder>(BytesBuilder(), (bb, blob) => bb..add(blob));
+
+        // Send the request, and translate the response.
+        var rq = Request(
+          method: req.method,
+          url: req.uri.toString(),
+          headers: headers,
+          body: bb.isEmpty ? null : base64.encode(bb.takeBytes()),
+        );
+        var rs = await app.lambdaClient.send(rq);
+        res
+          ..statusCode = rs.statusCode
+          ..headers.addAll(rs.headers);
+        if (rs.body != null) {
+          res.add(rs.body);
+        } else if (rs.text != null) {
+          res.write(rs.text);
+        }
+      }
     });
 
     app.fallback((req, res) =>
