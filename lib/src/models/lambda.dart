@@ -50,7 +50,7 @@ class Response {
           {Map<String, String> headers = const {}, int statusCode = 200}) =>
       Response(
           text: text,
-          headers: {'content-type': 'application/json'}..addAll(headers ?? {}),
+          headers: {'content-type': 'text/plain'}..addAll(headers ?? {}),
           statusCode: statusCode);
 
   factory Response.json(value,

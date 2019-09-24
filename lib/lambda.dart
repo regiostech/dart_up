@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:dart_up/src/lambda/server.dart';
 import 'package:dart_up/src/models.dart';
 import 'package:stream_channel/isolate_channel.dart';
+export 'package:dart_up/src/models/lambda.dart';
 
 Future<void> runLambda(
     SendPort sp, FutureOr<Response> Function(Request) handleRequest) async {
@@ -32,6 +33,7 @@ Future<void> runLambda(
       } else if (rs.body != null) {
         response.add(rs.body);
       }
+      await response.close();
     });
 
     var url = Uri(scheme: 'http', host: http.address.address, port: http.port);
