@@ -197,8 +197,13 @@ class ServeCommand extends Command {
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
       var pub = await Process.run(pubPath, ['get', '--no-precompile'],
-          workingDirectory: appDir.directory.path);
+          workingDirectory: appDir.directory.path,
+          stdoutEncoding: utf8,
+          stderrEncoding: utf8);
       if (pub.exitCode != 0) {
+        var b = StringBuffer();
+        b..writeln(pub.stdout)..writeln(pub.stderr);
+        logger.severe('$pubPath get failure', b.toString().trim());
         throw StateError('`$pubPath get` failed.');
       }
 
