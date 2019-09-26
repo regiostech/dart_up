@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:angel_framework/angel_framework.dart';
@@ -5,7 +6,6 @@ import 'package:angel_framework/http.dart';
 import 'package:args/command_runner.dart';
 import 'package:dart_up/src/models.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:pretty_logging/pretty_logging.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
@@ -19,6 +19,9 @@ class ServeCommand extends Command {
 
   ServeCommand() {
     argParser
+      ..addFlag('managed',
+          negatable: false,
+          help: 'Mute logging, and just print out the port number.')
       ..addFlag('require-password',
           negatable: false,
           help:
@@ -36,8 +39,10 @@ class ServeCommand extends Command {
   run() async {
     hierarchicalLoggingEnabled = true;
 
+    var isManaged = argResults['managed'] as bool;
     var logger = Logger('dart_up');
-    logger.onRecord.listen(prettyLog);
+
+    if (!isManaged) logger.onRecord.listen(prettyLog);
 
     var app = Angel(logger: logger), http = AngelHttp(app);
     app.errorHandler = (e, req, res) => e;
@@ -247,8 +252,19 @@ class ServeCommand extends Command {
     app.fallback((req, res) =>
         throw AngelHttpException.notFound(message: 'Invalid URL: ${req.uri}'));
 
-    await http.startServer(
-        argResults['address'], int.parse(argResults['port'] as String));
-    print('dart_up listening at ${http.uri}');
+    int port;
+    if (isManaged) {
+      port = 0;
+    } else {
+      port = int.parse(argResults['port'] as String);
+    }
+
+    await http.startServer(argResults['address'], port);
+
+    if (isManaged) {
+      print(http.server.port);
+    } else {
+      print('dart_up listening at ${http.uri}');
+    }
   }
 }
