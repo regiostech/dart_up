@@ -39,15 +39,21 @@ class Application {
           LambdaClient.withoutJson(IsolateChannel.connectReceive(lambdaPort));
     }
 
-    isolate = await Isolate.spawnUri(dillUri, [], message,
-        packageConfig: packagesUri,
-        onError: onError.sendPort,
-        onExit: onExit.sendPort);
-    isDead = false;
+    try {
+      isolate = await Isolate.spawnUri(dillUri, [], message,
+          packageConfig: packagesUri,
+          onError: onError.sendPort,
+          onExit: onExit.sendPort);
+      isDead = false;
 
-    if (isLambda) {
-      lambdaKillTimer?.cancel();
-      lambdaKillTimer = Timer(lambdaKillDuration, kill);
+      if (isLambda) {
+        lambdaKillTimer?.cancel();
+        lambdaKillTimer = Timer(lambdaKillDuration, kill);
+      }
+    } catch (e) {
+      // TODO: Should we still autorestart here???
+      isDead = true;
+      error = e;
     }
   }
 
