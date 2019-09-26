@@ -6,6 +6,7 @@ import 'package:angel_framework/http.dart';
 import 'package:args/command_runner.dart';
 import 'package:dart_up/src/models.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:pretty_logging/pretty_logging.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
@@ -186,10 +187,12 @@ class ServeCommand extends Command {
       // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
-      var pub = await Process.run('pub', ['get', '--no-precompile'],
+      var binDir = p.dirname(Platform.resolvedExecutable);
+      var pubPath = p.join(binDir, (Platform.isWindows ? 'pub.bat' : 'pub'));
+      var pub = await Process.run(pubPath, ['get', '--no-precompile'],
           workingDirectory: appDir.directory.path);
       if (pub.exitCode != 0) {
-        throw StateError('`pub get` failed.');
+        throw StateError('`$pubPath get` failed.');
       }
 
       // Write options
