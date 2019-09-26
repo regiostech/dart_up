@@ -34,7 +34,8 @@ class ServeCommand extends Command {
       ..addOption('address',
           abbr: 'a', defaultsTo: '127.0.0.1', help: 'The address to listen at.')
       ..addOption('port',
-          abbr: 'p', defaultsTo: '2374', help: 'The port to listen to.');
+          abbr: 'p', defaultsTo: '2374', help: 'The port to listen to.')
+      ..addOption('pub-path', help: 'The path to `pub`.');
   }
 
   run() async {
@@ -42,6 +43,14 @@ class ServeCommand extends Command {
 
     var isManaged = argResults['managed'] as bool;
     var logger = Logger('dart_up');
+    String pubPath;
+
+    if (argResults.wasParsed('pub-path')) {
+      pubPath = argResults['pub-path'] as String;
+    } else {
+      var binDir = p.dirname(Platform.resolvedExecutable);
+      pubPath = p.join(binDir, (Platform.isWindows ? 'pub.bat' : 'pub'));
+    }
 
     if (!isManaged) logger.onRecord.listen(prettyLog);
 
@@ -187,8 +196,6 @@ class ServeCommand extends Command {
       // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
-      var binDir = p.dirname(Platform.resolvedExecutable);
-      var pubPath = p.join(binDir, (Platform.isWindows ? 'pub.bat' : 'pub'));
       var pub = await Process.run(pubPath, ['get', '--no-precompile'],
           workingDirectory: appDir.directory.path);
       if (pub.exitCode != 0) {
