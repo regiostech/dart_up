@@ -34,6 +34,7 @@ class ApplicationDirectory {
   }
 
   Future<Map<String, dynamic>> readOptions() async {
+    if (!await optionsFile.exists()) return {};
     return await optionsFile
         .readAsString()
         .then(json.decode)
