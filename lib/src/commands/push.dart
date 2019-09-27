@@ -44,8 +44,8 @@ class PushCommand extends ClientCommand {
       var logger = Logger.standard(); // TODO: Verbose?
       var progress = logger.progress(lightGray.wrap('Building $dillFile'));
       var dart = await Process.start(Platform.resolvedExecutable,
-          ['--snapshot=$dillFile', argResults.rest[0]]);
-      dart..stdout.listen(stdout.add)..stderr.listen(stderr.add);
+          ['--snapshot=$dillFile', argResults.rest[0]],
+          mode: ProcessStartMode.inheritStdio);
       var exitCode = await dart.exitCode;
       await progress.finish(showTiming: true);
       if (exitCode != 0) {

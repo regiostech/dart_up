@@ -199,7 +199,8 @@ class ServeCommand extends Command {
       var pub = await Process.run(pubPath, ['get', '--no-precompile'],
           workingDirectory: appDir.directory.path,
           stdoutEncoding: utf8,
-          stderrEncoding: utf8);
+          stderrEncoding: utf8,
+          runInShell: true);
       if (pub.exitCode != 0) {
         var b = StringBuffer();
         b..writeln(pub.stdout)..writeln(pub.stderr);
