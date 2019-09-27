@@ -196,11 +196,16 @@ class ServeCommand extends Command {
       // Download the dependencies.
       var appDir = await dartUpDir.appsDir.create(appName);
       await appDir.pubspecFile.writeAsString(pubspecYaml);
-      var pub = await Process.run(pubPath, ['get', '--no-precompile'],
+      var pubExec = pubPath;
+      var pubArgs = ['get', '--no-precompile'];
+      if (!Platform.isWindows) {
+        pubExec = '/bin/bash';
+        pubArgs = ['-c', "$pubPath get --no-precompile"];
+      }
+      var pub = await Process.run(pubExec, pubArgs,
           workingDirectory: appDir.directory.path,
           stdoutEncoding: utf8,
-          stderrEncoding: utf8,
-          runInShell: true);
+          stderrEncoding: utf8);
       if (pub.exitCode != 0) {
         var b = StringBuffer();
         b..writeln(pub.stdout)..writeln(pub.stderr);
