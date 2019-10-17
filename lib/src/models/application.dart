@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:dart_up/src/lambda/client.dart';
+import 'package:up/src/lambda/client.dart';
 import 'package:io/ansi.dart';
 import 'package:stream_channel/isolate_channel.dart';
 

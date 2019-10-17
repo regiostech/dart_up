@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:dart_up/src/models.dart';
+import 'package:up/src/models.dart';
 import 'package:io/ansi.dart';
 import 'package:prompts/prompts.dart' as prompts;
 

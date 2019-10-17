@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:angel_client/angel_client.dart';
-import 'package:dart_up/src/models.dart';
+import 'package:up/src/models.dart';
 import 'package:path/path.dart' as p;
 import 'client_command.dart';
 

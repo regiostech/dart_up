@@ -1,4 +1,4 @@
-name: dart_up
+name: up
 version: 0.0.0
 description: Dart Web application container; run multiple apps in one VM.
 author: Tobe O <thosakwe@gmail.com>

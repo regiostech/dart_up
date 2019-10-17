@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:dart_up/src/lambda/server.dart';
-import 'package:dart_up/src/models.dart';
+import 'package:up/src/lambda/server.dart';
+import 'package:up/src/models.dart';
 import 'package:stream_channel/isolate_channel.dart';
-export 'package:dart_up/src/models/lambda.dart';
+export 'package:up/src/models/lambda.dart';
 
 Future<void> runLambda(
     SendPort sp, FutureOr<Response> Function(Request) handleRequest) async {

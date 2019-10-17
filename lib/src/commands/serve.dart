@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:angel_framework/angel_framework.dart';
 import 'package:angel_framework/http.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_up/src/models.dart';
+import 'package:up/src/models.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pretty_logging/pretty_logging.dart';

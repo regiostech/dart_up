@@ -1,5 +1,5 @@
 import 'dart:isolate';
-import 'package:dart_up/lambda.dart';
+import 'package:up/lambda.dart';
 
 main(_, SendPort sp) {
   return runLambda(

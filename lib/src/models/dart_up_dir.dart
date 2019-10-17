@@ -56,8 +56,11 @@ class DartUpPasswordFile {
   Future<Map<String, DartUpPassword>> read() async {
     var out = <String, DartUpPassword>{};
     if (await file.exists()) {
-      var lines =
-          file.openRead().transform(utf8.decoder).transform(LineSplitter());
+      var lines = file
+          .openRead()
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(LineSplitter());
       await for (var line in lines) {
         var parts =
             line.split(':').map((s) => s.trim()).where((s) => s.isNotEmpty);

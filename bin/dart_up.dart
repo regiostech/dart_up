@@ -1,3 +1,3 @@
-import 'package:dart_up/dart_up.dart';
+import 'package:up/up.dart';
 
 main(List<String> args) => dartUpCommandRunner.run(args);
